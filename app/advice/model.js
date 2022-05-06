@@ -17,4 +17,4 @@ const insertAdvice = async (props) => {
   return Advice.query().insert(props).returning('*');
 };
 
-export { Advice as default, insertAdvice };
+export { Advice, insertAdvice };
