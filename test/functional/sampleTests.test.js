@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { Model } from 'objection';
+import { QueryBuilder } from 'objection';
 import axios from 'axios';
 
 import app from 'app';
@@ -17,13 +17,6 @@ describe('jest', () => {
     jest.clearAllMocks();
   });
 
-  jest.spyOn(Advice, 'query').mockImplementation(() => {
-    return Model.query().resolve({
-      insert: jest.fn(),
-      deleteById: jest.fn(() => 1),
-    });
-  });
-
   describe('POST /advice', () => {
     describe('if no query is passed', () => {
       it('returns an error', async () => {
@@ -36,6 +29,8 @@ describe('jest', () => {
     });
 
     describe('success response', () => {
+      jest.spyOn(Advice, 'query').mockImplementation();
+
       it('should return an advice', async () => {
         axios.get.mockResolvedValueOnce(adviceResponse);
 
@@ -66,11 +61,15 @@ describe('jest', () => {
   });
 
   describe('DELETE /advice', () => {
-    describe('when deleting and existing advice should send a 200 status code', () => {
-      it.only('should delete an advice', async () => {
-        const resp = await request(app).delete('/advice/1').send();
+    jest
+      .spyOn(Advice, 'query')
+      .mockImplementation(() => QueryBuilder.forClass(Advice).resolve(1));
 
-        expect(resp).toBe(200);
+    describe('when deleting and existing advice should send a 200 status code', () => {
+      it('should delete an advice', async () => {
+        const { statusCode } = await request(app).delete('/advice/1').send();
+
+        expect(statusCode).toBe(200);
       });
     });
   });
