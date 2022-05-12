@@ -13,11 +13,15 @@ import 'test/helpers/dbTransaction';
 jest.mock('axios');
 
 describe('jest', () => {
-  beforeEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
-  it('works', () => {
-    expect(Math.min()).toBeGreaterThan(Math.max());
+
+  jest.spyOn(Advice, 'query').mockImplementation(() => {
+    return Model.query().resolve({
+      insert: jest.fn(),
+      deleteById: jest.fn(() => 1),
+    });
   });
 
   describe('POST /advice', () => {
@@ -35,19 +39,15 @@ describe('jest', () => {
       it('should return an advice', async () => {
         axios.get.mockResolvedValueOnce(adviceResponse);
 
-        jest.spyOn(Advice, 'query').mockImplementationOnce(() => {
-          return Model.query().resolve({
-            insert: jest.fn(),
-          });
-        });
-
-        const { text, statusCode } = await request(app)
+        const response = await request(app)
           .post('/advice')
           .query('searchTerm=love')
           .send();
 
-        expect(text).toBe("Alway do anything for love, but don't do that.");
-        expect(statusCode).toBe(200);
+        expect(response.text).toBe(
+          "Alway do anything for love, but don't do that.",
+        );
+        expect(response.statusCode).toBe(200);
       });
     });
 
@@ -61,6 +61,16 @@ describe('jest', () => {
           .send();
 
         expect(statusCode).toBe(404);
+      });
+    });
+  });
+
+  describe('DELETE /advice', () => {
+    describe('when deleting and existing advice should send a 200 status code', () => {
+      it.only('should delete an advice', async () => {
+        const resp = await request(app).delete('/advice/1').send();
+
+        expect(resp).toBe(200);
       });
     });
   });

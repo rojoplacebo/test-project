@@ -29,15 +29,29 @@ router.post('/advice', async (req, res) => {
           ].advice;
 
         // TODO: replace this with the actual API key
-        const { advice: createdAdvice } = await Advice.query().insert({
-          api_id: 992135,
-          advice,
-        });
+        const { advice: createdAdvice } = await Advice.query()
+          .insert({
+            api_id: 992135,
+            advice,
+          })
+          .then((data) => data)
+          .catch((err) => err);
 
         return res.send(createdAdvice);
       }
     })
     .catch((err) => res.send(err));
+});
+
+router.delete('/advice/:id', async (req, res) => {
+  const adviceId = req.params.id;
+
+  const deleted = await Advice.query()
+    .deleteById(adviceId)
+    .then((response) => response)
+    .catch((err) => err);
+  if (deleted === 1) res.sendStatus(200);
+  else res.sendStatus(404);
 });
 
 export default router;
